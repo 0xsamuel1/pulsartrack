@@ -1,11 +1,21 @@
 # CODEOWNERS for PulsarTrack repository
 
 # Smart contracts holding funds
-/contracts/ @ThinkLikeAFounder
+/contracts/ @devzubby
 
 # Authentication & authorization code
-/backend/src/middleware/ @ThinkLikeAFounder
-/backend/src/lib/jwt.ts @ThinkLikeAFounder
+/backend/src/middleware/ @devzubby
+/backend/src/lib/jwt.ts @devzubby
 
 # CI/CD Workflows
-/.github/workflows/ @ThinkLikeAFounder
+/.github/workflows/ @devzubby
+
+# Configuration and dependency changes can affect every deployment.
+/backend/src/config/ @devzubby
+/frontend/next.config.ts @devzubby
+/frontend/src/middleware.ts @devzubby
+/scripts/ @devzubby
+/deployments/ @devzubby
+/package.json @devzubby
+/*-lock.yaml @devzubby
+/*-lock.json @devzubby
