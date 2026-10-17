@@ -75,6 +75,7 @@ pub enum DataKey {
     Report(u64),
     Baseline(u64), // campaign_id
     FlaggedPublisher(Address),
+    OpenCriticalCount(Address), // unresolved Critical reports per publisher
 }
 
 const INSTANCE_LIFETIME_THRESHOLD: u32 = 120_960;
@@ -276,6 +277,17 @@ impl AnomalyDetectorContract {
                     PERSISTENT_LIFETIME_THRESHOLD,
                     PERSISTENT_BUMP_AMOUNT,
                 );
+
+                let count_key = DataKey::OpenCriticalCount(pub_addr.clone());
+                let open: u32 = env.storage().persistent().get(&count_key).unwrap_or(0);
+                env.storage()
+                    .persistent()
+                    .set(&count_key, &open.saturating_add(1));
+                env.storage().persistent().extend_ttl(
+                    &count_key,
+                    PERSISTENT_LIFETIME_THRESHOLD,
+                    PERSISTENT_BUMP_AMOUNT,
+                );
             }
         }
 
@@ -335,11 +347,27 @@ impl AnomalyDetectorContract {
         report.resolved = true;
         report.resolved_at = Some(env.ledger().timestamp());
 
-        // Clear the persistent publisher flag so the publisher is no longer blocked
-        if let Some(ref pub_addr) = report.publisher {
-            env.storage()
-                .persistent()
-                .remove(&DataKey::FlaggedPublisher(pub_addr.clone()));
+        // Only Critical reports set the publisher flag, so only resolving one can
+        // clear it — and only once no other Critical reports remain open.
+        if let (Some(ref pub_addr), AnomalySeverity::Critical) =
+            (&report.publisher, &report.severity)
+        {
+            let count_key = DataKey::OpenCriticalCount(pub_addr.clone());
+            let open: u32 = env.storage().persistent().get(&count_key).unwrap_or(0);
+            let remaining = open.saturating_sub(1);
+            if remaining == 0 {
+                env.storage().persistent().remove(&count_key);
+                env.storage()
+                    .persistent()
+                    .remove(&DataKey::FlaggedPublisher(pub_addr.clone()));
+            } else {
+                env.storage().persistent().set(&count_key, &remaining);
+                env.storage().persistent().extend_ttl(
+                    &count_key,
+                    PERSISTENT_LIFETIME_THRESHOLD,
+                    PERSISTENT_BUMP_AMOUNT,
+                );
+            }
         }
 
         let _ttl_key = DataKey::Report(report_id);

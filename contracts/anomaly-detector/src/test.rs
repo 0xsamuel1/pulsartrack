@@ -201,3 +201,91 @@ fn test_report_anomaly_clicks_exceed_threshold() {
     );
     assert_eq!(c.get_report_count(), 1);
 }
+
+fn report(
+    env: &Env,
+    c: &AnomalyDetectorContractClient<'_>,
+    oracle: &Address,
+    publisher: &Address,
+    severity: AnomalySeverity,
+) -> u64 {
+    c.report_anomaly(
+        oracle,
+        &1u64,
+        &Some(publisher.clone()),
+        &AnomalyParams {
+            anomaly_type: AnomalyType::ClickFarming,
+            severity,
+            description: s(env, "spike"),
+            metrics_snapshot: s(env, "{}"),
+            auto_action: true,
+            current_impressions_per_hour: 4000,
+            current_clicks_per_hour: 200,
+        },
+    )
+}
+
+#[test]
+fn test_resolve_critical_clears_flag() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let (c, admin, oracle) = setup(&env);
+    let publisher = Address::generate(&env);
+
+    let id = report(&env, &c, &oracle, &publisher, AnomalySeverity::Critical);
+    assert!(c.is_publisher_flagged(&publisher));
+
+    c.resolve_anomaly(&admin, &id);
+    assert!(!c.is_publisher_flagged(&publisher));
+}
+
+#[test]
+fn test_resolve_non_critical_keeps_flag() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let (c, admin, oracle) = setup(&env);
+    let publisher = Address::generate(&env);
+
+    let critical = report(&env, &c, &oracle, &publisher, AnomalySeverity::Critical);
+    let medium = report(&env, &c, &oracle, &publisher, AnomalySeverity::Medium);
+
+    // Resolving the unrelated Medium report must not clear the flag
+    c.resolve_anomaly(&admin, &medium);
+    assert!(c.is_publisher_flagged(&publisher));
+
+    c.resolve_anomaly(&admin, &critical);
+    assert!(!c.is_publisher_flagged(&publisher));
+}
+
+#[test]
+fn test_flag_persists_until_all_critical_resolved() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let (c, admin, oracle) = setup(&env);
+    let publisher = Address::generate(&env);
+
+    let first = report(&env, &c, &oracle, &publisher, AnomalySeverity::Critical);
+    let second = report(&env, &c, &oracle, &publisher, AnomalySeverity::Critical);
+
+    c.resolve_anomaly(&admin, &first);
+    assert!(c.is_publisher_flagged(&publisher));
+
+    c.resolve_anomaly(&admin, &second);
+    assert!(!c.is_publisher_flagged(&publisher));
+}
+
+#[test]
+fn test_flags_are_per_publisher() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let (c, admin, oracle) = setup(&env);
+    let a = Address::generate(&env);
+    let b = Address::generate(&env);
+
+    let id_a = report(&env, &c, &oracle, &a, AnomalySeverity::Critical);
+    report(&env, &c, &oracle, &b, AnomalySeverity::Critical);
+
+    c.resolve_anomaly(&admin, &id_a);
+    assert!(!c.is_publisher_flagged(&a));
+    assert!(c.is_publisher_flagged(&b));
+}
