@@ -360,6 +360,15 @@ export function validateEnv(
     values[name] = raw;
   }
 
+  // CORS_ORIGIN cannot be a wildcard when credentials are enabled (#1027)
+  const corsOrigin = source.CORS_ORIGIN?.trim();
+  if (corsOrigin === '*') {
+    issues.push({
+      variable: 'CORS_ORIGIN',
+      message: 'cannot be a wildcard "*" when CORS credentials are enabled (browser security restriction)',
+    });
+  }
+
   return { values: values as ValidatedEnv, issues };
 }
 
