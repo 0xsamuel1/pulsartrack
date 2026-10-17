@@ -1082,3 +1082,25 @@ fn test_set_dispute_contract_unauthorized() {
 
     c.set_dispute_contract(&stranger, &dispute_addr);
 }
+
+// ─── upgrade ─────────────────────────────────────────────────────────────────
+
+#[test]
+#[should_panic]
+fn test_upgrade_requires_admin_auth() {
+    let env = Env::default();
+    let (c, _admin, _, _) = setup(&env);
+    // deliberately no mock_all_auths so admin.require_auth panics
+    let new_wasm_hash = BytesN::from_array(&env, &[1u8; 32]);
+    c.upgrade(&new_wasm_hash);
+}
+
+#[test]
+#[should_panic(expected = "Wasm does not exist")]
+fn test_upgrade_admin_delegates_to_host() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let (c, _admin, _, _) = setup(&env);
+    let new_wasm_hash = BytesN::from_array(&env, &[1u8; 32]);
+    c.upgrade(&new_wasm_hash);
+}

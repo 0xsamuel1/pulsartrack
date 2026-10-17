@@ -2,15 +2,16 @@
 
 ## Supported Versions
 
-We currently support and provide security updates for the following components:
+PulsarTrack is currently in active pre-1.0 development (`v0.1.0`). We support and provide security updates for the current active development target (`main` branch / latest `0.x` release):
 
 | Component | Supported Versions |
 |-----------|--------------------|
-| Smart Contracts (Soroban) | `v1.0.x` and above |
-| Frontend Web Application | `v1.0.x` and above |
-| Backend Services / APIs | `v1.0.x` and above |
+| Smart Contracts (Soroban) | `0.x` (latest on `main`) |
+| Frontend Web Application | `0.x` (latest on `main`) |
+| Backend Services / APIs | `0.x` (latest on `main`) |
 
-Older versions or experimental branches (like `beta` or `alpha`) are generally not supported with backported security updates.
+Older versions or stale development branches are not supported with backported security updates. This policy will be revisited and updated once formal versioned releases reach `v1.0.0`.
+
 
 ## Reporting a Vulnerability
 

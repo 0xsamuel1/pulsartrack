@@ -8,7 +8,9 @@
 //! - ("escrow", "refund"): [escrow_id: u64, amount: i128]
 
 #![no_std]
-use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, token, Address, Env, Vec};
+use soroban_sdk::{
+    contract, contractimpl, contracttype, symbol_short, token, Address, BytesN, Env, Vec,
+};
 
 // ============================================================
 // Creation Arguments
@@ -860,6 +862,25 @@ impl EscrowVaultContract {
             &DataKey::PendingAdmin,
             current_admin,
         );
+    }
+
+    /// Upgrade the contract WASM bytecode. Only callable by the admin.
+    pub fn upgrade(env: Env, new_wasm_hash: BytesN<32>) {
+        env.storage()
+            .instance()
+            .extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
+        let admin: Address = env
+            .storage()
+            .instance()
+            .get(&DataKey::Admin)
+            .expect("admin not set");
+        admin.require_auth();
+
+        env.deployer()
+            .update_current_contract_wasm(new_wasm_hash.clone());
+
+        env.events()
+            .publish((symbol_short!("upgrade"),), new_wasm_hash);
     }
 }
 
