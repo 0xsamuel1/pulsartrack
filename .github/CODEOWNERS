@@ -12,10 +12,16 @@
 
 # Configuration and dependency changes can affect every deployment.
 /backend/src/config/ @devzubby
+/backend/package.json @devzubby
 /frontend/next.config.ts @devzubby
 /frontend/src/middleware.ts @devzubby
+/frontend/package.json @devzubby
 /scripts/ @devzubby
 /deployments/ @devzubby
 /package.json @devzubby
+/Cargo.toml @devzubby
+/Cargo.lock @devzubby
 /*-lock.yaml @devzubby
 /*-lock.json @devzubby
+/package-lock.json @devzubby
+
