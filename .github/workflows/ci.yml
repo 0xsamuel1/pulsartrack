@@ -46,10 +46,10 @@ jobs:
         with:
           node-version: "22"
           cache: "npm"
-          cache-dependency-path: backend/package-lock.json
-      - name: Install dependencies
+      - name: Install workspace dependencies
         run: npm ci
-        working-directory: backend
+      - name: Build shared packages
+        run: npm run build:shared
       - name: Lint backend
         run: npm run lint
         working-directory: backend
@@ -74,10 +74,10 @@ jobs:
         with:
           node-version: "22"
           cache: "npm"
-          cache-dependency-path: frontend/package-lock.json
-      - name: Install dependencies
+      - name: Install workspace dependencies
         run: npm ci
-        working-directory: frontend
+      - name: Build shared packages
+        run: npm run build:shared
       - name: Type check frontend
         run: npm run typecheck
         working-directory: frontend
@@ -102,10 +102,10 @@ jobs:
         with:
           node-version: "22"
           cache: "npm"
-          cache-dependency-path: frontend/package-lock.json
-      - name: Install dependencies
+      - name: Install workspace dependencies
         run: npm ci
-        working-directory: frontend
+      - name: Build shared packages
+        run: npm run build:shared
       - name: Build frontend
         run: npm run build
         working-directory: frontend

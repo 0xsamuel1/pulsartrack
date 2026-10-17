@@ -1,0 +1,23 @@
+{
+  "name": "pulsartrack-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PulsarTrack monorepo with backend, frontend, and shared packages",
+  "workspaces": [
+    "packages/*",
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "build:shared": "npm run build --workspace=@pulsartrack/sentry-scrubber",
+    "build": "npm run build:shared && npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=22.0.0 <23.0.0",
+    "npm": ">=10.0.0"
+  },
+  "author": "",
+  "license": "Apache-2.0"
+}
