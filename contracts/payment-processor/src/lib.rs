@@ -163,10 +163,8 @@ impl PaymentProcessorContract {
             .persistent()
             .remove(&DataKey::TokenConfig(token.clone()));
 
-        env.events().publish(
-            (symbol_short!("token"), symbol_short!("removed")),
-            token,
-        );
+        env.events()
+            .publish((symbol_short!("token"), symbol_short!("removed")), token);
     }
 
     /// Process a payment
@@ -401,10 +399,12 @@ impl PaymentProcessorContract {
                     last_payment: 0,
                 });
 
-        stats.total_payments = stats.total_payments
+        stats.total_payments = stats
+            .total_payments
             .checked_add(1)
             .expect("total_payments overflow");
-        stats.total_spent = stats.total_spent
+        stats.total_spent = stats
+            .total_spent
             .checked_add(amount)
             .expect("total_spent overflow");
         stats.last_payment = env.ledger().timestamp();

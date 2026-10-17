@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { createHash } from "crypto";
 import fs from "fs";
 import path from "path";
 import type { Pool, PoolClient, QueryResult, QueryResultRow } from "pg";
@@ -163,7 +164,7 @@ describe("Database Migrations", () => {
 
     // Second run: migration already applied
     mockQuery.mockReset();
-    const checksum = require("crypto").createHash("sha256").update(migrationContent).digest("hex");
+    const checksum = createHash("sha256").update(migrationContent).digest("hex");
     mockQuery.mockResolvedValueOnce(mockQueryResult()); // advisory lock
     mockQuery.mockResolvedValueOnce(mockQueryResult()); // schema.sql
     mockQuery.mockResolvedValueOnce(mockQueryResult()); // create schema_migrations table
@@ -277,7 +278,7 @@ describe("Database Migrations", () => {
     );
 
     mockQuery.mockReset();
-    const checksum = require("crypto").createHash("sha256").update(migrationContent).digest("hex");
+    const checksum = createHash("sha256").update(migrationContent).digest("hex");
     mockQuery.mockResolvedValueOnce(mockQueryResult()); // advisory lock
     mockQuery.mockResolvedValueOnce(mockQueryResult()); // schema.sql
     mockQuery.mockResolvedValueOnce(mockQueryResult()); // create schema_migrations table

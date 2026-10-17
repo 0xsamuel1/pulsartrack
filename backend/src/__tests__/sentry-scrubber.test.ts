@@ -12,7 +12,7 @@ describe("Backend Sentry Scrubber", () => {
     // The actual tests are in packages/sentry-scrubber/src/index.test.ts
     // This file exists to document that backend uses the shared implementation
     // Run tests with: npm test packages/sentry-scrubber
-    const { scrubString, isSensitiveKey } = await import("../lib/sentry-scrubber");
+    const { scrubString } = await import("../lib/sentry-scrubber");
     
     // Basic smoke test
     const result = scrubString("test Bearer token123");

@@ -1,5 +1,4 @@
 import { getServer } from './soroban-client';
-import { stellarConfig } from '../config/stellar';
 import * as ledgerEventsRepo from '../db/repositories/ledgerEvents';
 import { logger } from '../lib/logger';
 

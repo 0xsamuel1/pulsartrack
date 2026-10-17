@@ -466,10 +466,12 @@ impl CampaignOrchestratorContract {
         }
 
         // CEI: update state BEFORE external transfer
-        campaign.remaining_budget = campaign.remaining_budget
+        campaign.remaining_budget = campaign
+            .remaining_budget
             .checked_sub(campaign.cost_per_view)
             .expect("remaining_budget underflow");
-        campaign.current_views = campaign.current_views
+        campaign.current_views = campaign
+            .current_views
             .checked_add(1)
             .expect("current_views overflow");
         campaign.last_updated = env.ledger().timestamp();
@@ -902,13 +904,16 @@ impl CampaignOrchestratorContract {
             .get::<DataKey, AdvertiserStats>(&key);
 
         let new_stats = if let Some(mut s) = stats {
-            s.total_campaigns = s.total_campaigns
+            s.total_campaigns = s
+                .total_campaigns
                 .checked_add(1)
                 .expect("total_campaigns overflow");
-            s.active_campaigns = s.active_campaigns
+            s.active_campaigns = s
+                .active_campaigns
                 .checked_add(1)
                 .expect("active_campaigns overflow");
-            s.total_spent = s.total_spent
+            s.total_spent = s
+                .total_spent
                 .checked_add(budget)
                 .expect("total_spent overflow");
             s.last_campaign_id = campaign_id;
