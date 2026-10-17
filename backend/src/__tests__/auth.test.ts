@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
+import { createHmac } from 'crypto';
 import { createJwt, decodeJwt, InvalidTokenError, TOKEN_EXPIRY } from '../lib/jwt';
 
 // Mock logger to suppress output
@@ -60,8 +61,7 @@ describe('JWT (jwt.ts)', () => {
     it('should reject validly signed token with non-JSON header', () => {
       const header = Buffer.from('not-json').toString('base64url');
       const body = Buffer.from(JSON.stringify({ sub: 'GABC', iat: 0, exp: 999999999999 })).toString('base64url');
-      const crypto = require('crypto');
-      const sig = crypto.createHmac('sha256', process.env.JWT_SECRET || 'test').update(`${header}.${body}`).digest('base64url');
+      const sig = createHmac('sha256', process.env.JWT_SECRET || 'test').update(`${header}.${body}`).digest('base64url');
       const malformedToken = `${header}.${body}.${sig}`;
       expect(() => decodeJwt(malformedToken)).toThrow(InvalidTokenError);
       expect(() => decodeJwt(malformedToken)).toThrow('Invalid token header');
@@ -70,8 +70,7 @@ describe('JWT (jwt.ts)', () => {
     it('should reject validly signed token with non-JSON payload', () => {
       const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
       const body = Buffer.from('not-json').toString('base64url');
-      const crypto = require('crypto');
-      const sig = crypto.createHmac('sha256', process.env.JWT_SECRET || 'test').update(`${header}.${body}`).digest('base64url');
+      const sig = createHmac('sha256', process.env.JWT_SECRET || 'test').update(`${header}.${body}`).digest('base64url');
       const malformedToken = `${header}.${body}.${sig}`;
       expect(() => decodeJwt(malformedToken)).toThrow(InvalidTokenError);
       expect(() => decodeJwt(malformedToken)).toThrow('Invalid token payload');
@@ -80,8 +79,7 @@ describe('JWT (jwt.ts)', () => {
     it('should reject token with wrong algorithm', () => {
       const header = Buffer.from(JSON.stringify({ alg: 'HS512', typ: 'JWT' })).toString('base64url');
       const body = Buffer.from(JSON.stringify({ sub: 'GABC', iat: 0, exp: 999999999999 })).toString('base64url');
-      const crypto = require('crypto');
-      const sig = crypto.createHmac('sha256', process.env.JWT_SECRET || 'test').update(`${header}.${body}`).digest('base64url');
+      const sig = createHmac('sha256', process.env.JWT_SECRET || 'test').update(`${header}.${body}`).digest('base64url');
       const wrongAlgToken = `${header}.${body}.${sig}`;
       expect(() => decodeJwt(wrongAlgToken)).toThrow(InvalidTokenError);
       expect(() => decodeJwt(wrongAlgToken)).toThrow('Invalid token header');

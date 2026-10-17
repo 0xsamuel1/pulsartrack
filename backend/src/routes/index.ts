@@ -4,7 +4,7 @@ import { logger } from "../lib/logger";
 const router = Router();
 
 // Example route registration
-router.get("/", (req, res) => {
+router.get("/", (req, _res) => {
 	logger.info({ ip: req.ip }, "Root route hit");
 	// ...existing code...
 });

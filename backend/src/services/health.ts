@@ -2,7 +2,6 @@ import { checkDbConnection } from "../config/database";
 import redisClient from "../config/redis";
 import { createHorizonServer } from "./horizon";
 import { getServer } from "./soroban-client";
-import { logger } from "../lib/logger";
 
 export interface HealthCheckResult {
   database: "ok" | "error";

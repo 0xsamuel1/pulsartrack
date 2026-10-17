@@ -165,7 +165,8 @@ impl RewardsDistributorContract {
             panic!("program ended");
         }
 
-        program.distributed = program.distributed
+        program.distributed = program
+            .distributed
             .checked_add(amount)
             .expect("distributed accumulator overflow");
         let _ttl_key = DataKey::Program(program_id);
