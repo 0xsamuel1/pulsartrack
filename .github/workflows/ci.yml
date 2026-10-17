@@ -84,6 +84,9 @@ jobs:
       - name: Lint frontend
         run: npm run lint
         working-directory: frontend
+      - name: Validate Docker env vars
+        run: npm run validate:docker-env
+        working-directory: frontend
       - name: Build frontend
         run: npm run build
         working-directory: frontend

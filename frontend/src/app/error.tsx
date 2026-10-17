@@ -49,9 +49,15 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
           An unexpected error occurred while loading this page.
         </p>
 
-        {error.message && (
+        {/* Raw messages can leak internals, so only show them in development. */}
+        {process.env.NODE_ENV === "development" && error.message ? (
           <p className="text-xs font-mono text-red-500 bg-red-50 dark:bg-red-900/20 dark:text-red-400 p-2 rounded mb-6 truncate">
             {error.message}
+          </p>
+        ) : (
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+            Please try again. If the problem continues, contact support with the
+            error ID below.
           </p>
         )}
 

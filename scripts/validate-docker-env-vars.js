@@ -10,6 +10,30 @@
 
 const fs = require('fs');
 const path = require('path');
+const { createRequire } = require('module');
+
+// The YAML parser is a frontend devDependency; resolve it from there so this
+// script needs no package.json of its own.
+const { parse: parseYaml } = createRequire(path.join(__dirname, '../frontend/package.json'))('yaml');
+
+/**
+ * Returns the NEXT_PUBLIC_* keys declared under services.frontend.build.args.
+ * Accepts both the map form (KEY: value) and the list form (- KEY=value).
+ */
+function getFrontendBuildArgs(composeText) {
+  const compose = parseYaml(composeText);
+  const args = compose?.services?.frontend?.build?.args;
+  if (!args) return null;
+
+  const keys = Array.isArray(args)
+    ? args.map(entry => String(entry).split('=')[0].trim())
+    : Object.keys(args);
+  return keys.filter(key => key.startsWith('NEXT_PUBLIC_'));
+}
+
+module.exports = { getFrontendBuildArgs };
+
+if (require.main !== module) return;
 
 // Read the required env vars from stellar-config.ts
 const stellarConfigPath = path.join(__dirname, '../frontend/src/lib/stellar-config.ts');
@@ -48,18 +72,11 @@ console.log(`🐳 Found ${dockerfileArgs.length} NEXT_PUBLIC_* ARG declarations 
 const dockerComposePath = path.join(__dirname, '../docker-compose.yml');
 const dockerCompose = fs.readFileSync(dockerComposePath, 'utf8');
 
-// Extract build args from frontend service
-const frontendBuildArgsMatch = dockerCompose.match(/frontend:[\s\S]*?args:([\s\S]*?)container_name:/);
-if (!frontendBuildArgsMatch) {
+// Extract build args from the frontend service only
+const composeArgs = getFrontendBuildArgs(dockerCompose);
+if (!composeArgs) {
   console.error('❌ Could not find frontend build.args in docker-compose.yml');
   process.exit(1);
-}
-
-const buildArgsSection = frontendBuildArgsMatch[1];
-const buildArgsPattern = /(NEXT_PUBLIC_[A-Z_]+):/g;
-const composeArgs = [];
-while ((match = buildArgsPattern.exec(buildArgsSection)) !== null) {
-  composeArgs.push(match[1]);
 }
 
 console.log(`📦 Found ${composeArgs.length} NEXT_PUBLIC_* build args in docker-compose.yml`);
