@@ -5,6 +5,7 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Header } from "@/components/header";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { getSiteUrl } from "@/lib/site-url";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,7 +26,7 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://pulsartrack.io'), // Placeholder URL, update as needed
+  metadataBase: getSiteUrl(),
   title: {
     default: "PulsarTrack - Decentralized Ad Tracking on Stellar",
     template: "%s | PulsarTrack"
@@ -36,7 +37,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://pulsartrack.io",
+    url: "/",
     siteName: "PulsarTrack",
     title: "PulsarTrack - Decentralized Ad Tracking on Stellar",
     description: "Privacy-preserving, blockchain-powered advertising platform on the Stellar network.",

@@ -49,6 +49,17 @@ The following are explicitly **out of scope**:
 - Issues related to the Stellar network itself or the Soroban execution environment (please report these directly to the Stellar Development Foundation).
 - Denial of Service (DoS) attacks requiring massive external resources.
 
+## Accepted Dependency Advisories
+
+`npm audit fix` has been applied in `backend/`. The advisories below remain
+because no non-breaking fix exists. They are accepted until the listed
+follow-up lands. Recheck with `npm run audit` in `backend/`.
+
+| Package | Severity | Path | Why accepted | Follow-up |
+|---|---|---|---|---|
+| `toml` <4.2.0 ([GHSA-82x6-q7mm-w9cf](https://github.com/advisories/GHSA-82x6-q7mm-w9cf), [GHSA-v5mp-jgw5-2x6j](https://github.com/advisories/GHSA-v5mp-jgw5-2x6j)) | High | `@stellar/stellar-sdk` 14 | Only reached through the SDK's `StellarToml` resolver, which parses remote `stellar.toml` files. The backend never calls it, so no untrusted TOML is parsed. | Upgrade `@stellar/stellar-sdk` to 17.x in its own PR, with manual checks of the Horizon and Soroban RPC calls in `src/services/` against testnet. |
+| `braces` <=3.0.3 ([GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm)) | High | `nodemon` > `chokidar` (dev only) | No patched `braces` release exists. Only used by the local `npm run dev` file watcher with patterns from this repo, never in production images. | Update `nodemon` once a fixed `chokidar`/`braces` is published. |
+
 ## Bug Bounty
 
 We highly value the work of the security community. At this time, all validated and accepted reports of critical or high severity vulnerabilities in our core smart contracts may be eligible for a bug bounty. 
