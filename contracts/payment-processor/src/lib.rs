@@ -401,8 +401,12 @@ impl PaymentProcessorContract {
                     last_payment: 0,
                 });
 
-        stats.total_payments += 1;
-        stats.total_spent += amount;
+        stats.total_payments = stats.total_payments
+            .checked_add(1)
+            .expect("total_payments overflow");
+        stats.total_spent = stats.total_spent
+            .checked_add(amount)
+            .expect("total_spent overflow");
         stats.last_payment = env.ledger().timestamp();
         env.storage().persistent().set(&key, &stats);
         env.storage().persistent().extend_ttl(

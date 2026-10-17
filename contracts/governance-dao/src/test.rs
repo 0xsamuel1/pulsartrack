@@ -1185,7 +1185,7 @@ fn test_mint_after_snapshot_does_not_change_quorum_result() {
     token.set_balance(&new_holder, &4_000i128);
 
     env.ledger().with_mut(|li| {
-        li.sequence_number = 200;
+        li.sequence_number = 201;
     });
 
     client.finalize_proposal(&proposal_id);
@@ -1221,7 +1221,7 @@ fn test_burn_after_snapshot_does_not_change_quorum_result() {
     // finalize_proposal should still see supply=10_000 at the snapshot.
     // 500 votes / 10_000 supply = 5% < 10% quorum → Rejected
     env.ledger().with_mut(|li| {
-        li.sequence_number = 200;
+        li.sequence_number = 201;
     });
 
     client.finalize_proposal(&proposal_id);
@@ -1253,7 +1253,7 @@ fn test_proposal_passes_with_snapshot_supply_not_live_supply() {
     client.cast_vote(&voter, &proposal_id, &VoteChoice::For, &200i128);
 
     env.ledger().with_mut(|li| {
-        li.sequence_number = 200;
+        li.sequence_number = 201;
     });
 
     client.finalize_proposal(&proposal_id);
