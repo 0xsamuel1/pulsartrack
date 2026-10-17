@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createRateLimiter, getClientIp } from "@/lib/rate-limiter";
 
 /**
  * GET /api/analytics/timeseries
@@ -36,29 +37,8 @@ type Timeframe = (typeof ALLOWED_TIMEFRAMES)[number];
 
 const MAX_CAMPAIGN_IDS = 10;
 
-/** In-memory rate limiter: IP → { count, windowStart } */
-const rateLimitMap = new Map<string, { count: number; windowStart: number }>();
-const RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX = 30;
-
-function getClientIp(request: NextRequest): string {
-  return (
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    request.headers.get("x-real-ip") ??
-    "unknown"
-  );
-}
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(ip);
-  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
-    rateLimitMap.set(ip, { count: 1, windowStart: now });
-    return false;
-  }
-  entry.count += 1;
-  return entry.count > RATE_LIMIT_MAX;
-}
+// Per-IP rate limiting (30 requests per minute) (#1028)
+const isRateLimited = createRateLimiter(30, 60_000);
 
 function timeframeToDays(tf: Timeframe): number {
   return tf === "7d" ? 7 : tf === "30d" ? 30 : 90;
@@ -161,7 +141,7 @@ async function fetchFromBackend(
 
 export async function GET(request: NextRequest) {
   // ── Rate limiting ───────────────────────────────────────────────────────
-  const ip = getClientIp(request);
+  const ip = getClientIp(request.headers);
   if (isRateLimited(ip)) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }

@@ -1,10 +1,11 @@
 import prisma from '../prisma';
 import { Prisma } from '@prisma/client';
 
-export async function findByAuction(auctionId: bigint) {
+export async function findByAuction(auctionId: bigint, limit = 100) {
   return prisma.bid.findMany({
     where: { auctionId },
     orderBy: { amountStroops: 'desc' },
+    take: limit,
   });
 }
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createRateLimiter, getClientIp } from "@/lib/rate-limiter";
 
 /**
  * CSP violation report endpoint.
@@ -29,32 +30,8 @@ const ACCEPTED_CONTENT_TYPES = new Set([
   "application/json",
 ]);
 
-/** In-memory rate limiter: IP → { count, windowStart } */
-const rateLimitMap = new Map<string, { count: number; windowStart: number }>();
-const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
-const RATE_LIMIT_MAX = 60; // 60 requests per minute per IP
-
-function getClientIp(request: NextRequest): string {
-  return (
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    request.headers.get("x-real-ip") ??
-    "unknown"
-  );
-}
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(ip);
-  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
-    rateLimitMap.set(ip, { count: 1, windowStart: now });
-    return false;
-  }
-  entry.count += 1;
-  if (entry.count > RATE_LIMIT_MAX) {
-    return true;
-  }
-  return false;
-}
+// Per-IP rate limiting (60 requests per minute) — mitigates log-flooding (#1028)
+const isRateLimited = createRateLimiter(60, 60_000);
 
 /** Truncate a field value to a safe maximum length. */
 function trunc(value: unknown): string {
@@ -138,7 +115,7 @@ export async function POST(request: NextRequest) {
   }
 
   // ── Rate limiting ───────────────────────────────────────────────────────
-  const ip = getClientIp(request);
+  const ip = getClientIp(request.headers);
   if (isRateLimited(ip)) {
     return new NextResponse(null, { status: 429 });
   }
