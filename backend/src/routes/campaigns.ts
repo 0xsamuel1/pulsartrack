@@ -4,8 +4,33 @@ import { callReadOnly } from '../services/soroban-client';
 import { CONTRACT_IDS } from '../config/stellar';
 import { requireAuth, rateLimitWrite, getAuthedAddress } from '../middleware/auth';
 import { validate } from '../middleware/validate';
+import pool from '../config/database';
 
 const router = Router();
+
+// Return observed daily events only; aggregate campaign counters cannot be
+// reconstructed into historical data without inventing dates.
+router.get('/:id/timeseries', async (req: Request, res: Response) => {
+  const campaignId = Number(req.params.id);
+  const days = Math.min(Math.max(Number(req.query.days) || 30, 1), 90);
+  if (!Number.isSafeInteger(campaignId) || campaignId <= 0) {
+    return res.status(400).json({ error: 'Invalid campaign id' });
+  }
+  try {
+    const { rows } = await pool.query(
+      `SELECT to_char(date_trunc('day', timestamp AT TIME ZONE 'UTC'), 'YYYY-MM-DD') AS date,
+              COUNT(*)::int AS impressions
+       FROM impressions
+       WHERE campaign_id = $1 AND timestamp >= NOW() - ($2::int * INTERVAL '1 day')
+       GROUP BY 1 ORDER BY 1`,
+      [campaignId, days],
+    );
+    return res.json(rows.map((row) => ({ date: row.date, impressions: row.impressions, clicks: 0 })));
+  } catch (err) {
+    req.log?.error({ err }, 'Failed to fetch campaign timeseries');
+    return res.status(500).json({ error: 'Failed to fetch campaign timeseries' });
+  }
+});
 
 router.get('/stats', async (_req: Request, res: Response) => {
   try {
